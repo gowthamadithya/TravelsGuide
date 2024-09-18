@@ -58,7 +58,7 @@ function AttractionCard({ attraction }) {
             },
           }}
         >
-          Learn More
+          View Details
         </Button>
       </StyledCardContent>
     </StyledCard>

@@ -1,0 +1,60 @@
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environment
+virtenv/
+venv/
+.env/
+
+# Django-specific files
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.idea/
+
+# Media files (if stored locally)
+media/
+
+# Static files (if collected)
+static/
+
+# Configuration files
+*.env
+*.local
+
+# IDE and editor-specific files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.project
+*.pydevproject
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+.coverage
+*.cover
+*.py,cover
+
+# MyPy
+.mypy_cache/
+
+# Test and build artifacts
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+*.tmp
+
+# Jupyter Notebook files
+.ipynb_checkpoints/

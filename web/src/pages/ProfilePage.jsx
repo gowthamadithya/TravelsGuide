@@ -3,6 +3,8 @@ import React from 'react';
 import { Container, Typography, Box, Paper, Avatar } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import AttractionCard from '../components/AttractionCard';
+import AttractionRow from '../components/AttractionRow';
+import { readResource } from '../api/ApiService';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -25,7 +27,7 @@ const AnimatedBox = styled(Box)(({ theme, delay }) => ({
 
 // Mock user data
 const user = {
-  name: 'John Doe',
+  username: 'c',
   email: 'john.doe@example.com',
   avatar: 'https://example.com/avatar.jpg',
 };
@@ -40,6 +42,10 @@ const likedAttractions = [
   { id: 3, name: 'Great Wall of China', description: 'Ancient fortification in northern China', image: 'https://example.com/greatwall.jpg' },
   { id: 4, name: 'Machu Picchu', description: 'Incan citadel in Peru', image: 'https://example.com/machupicchu.jpg' },
 ];
+
+const userend = `crpred/recommend/?username=${user.username}`
+const recommendations = readResource("todos/")
+console.log(recommendations)
 
 function ProfilePage() {
   return (
@@ -62,24 +68,14 @@ function ProfilePage() {
             <Typography variant="body1" color="text.secondary">{user.email}</Typography>
           </Paper>
         </AnimatedBox>
+        </Box>
+           <Box sx={{ mb: 4 }}>
+           <AttractionRow title="Visited Attractions" attractions={visitedAttractions} />
+           <AttractionRow title="Liked Attractions" attractions={likedAttractions} />
+         </Box>
+        </StyledContainer>
 
-        <AnimatedBox delay={0.4} sx={{ flex: 2 }}>
-          <Typography variant="h5" gutterBottom>Visited Attractions</Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {visitedAttractions.map((attraction) => (
-              <AttractionCard key={attraction.id} attraction={attraction} />
-            ))}
-          </Box>
 
-          <Typography variant="h5" gutterBottom sx={{ mt: 4 }}>Liked Attractions</Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {likedAttractions.map((attraction) => (
-              <AttractionCard key={attraction.id} attraction={attraction} />
-            ))}
-          </Box>
-        </AnimatedBox>
-      </Box>
-    </StyledContainer>
   );
 }
 

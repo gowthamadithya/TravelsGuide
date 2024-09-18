@@ -65,6 +65,9 @@ const recentlyViewed = [
   // Add more attractions...
 ];
 
+
+
+
 function LandingPage() {
   return (
     <StyledContainer maxWidth={false}>
