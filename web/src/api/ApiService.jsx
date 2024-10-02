@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://jsonplaceholder.typicode.com/';
+export const BASE_URL = 'http://127.0.0.1:8000/';
+export const username = 'c'
 
 const apiService = async (method, endpoint, data = null, params = {}) => {
   try {

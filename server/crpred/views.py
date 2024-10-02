@@ -26,8 +26,8 @@ class RatingListCreate(APIView):
 
 class RecommendUser(APIView):
     def get(self, request):
-        user_id = request.GET.get('username')
-        recommendations = recommendation_system.recommend(user_id)
+        username = request.GET.get('username')
+        recommendations = recommendation_system.recommend(username)
         
         if recommendations is None:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

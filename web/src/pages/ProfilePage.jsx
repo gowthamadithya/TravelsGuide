@@ -1,10 +1,11 @@
 // src/pages/ProfilePage.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Typography, Box, Paper, Avatar } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import AttractionCard from '../components/AttractionCard';
 import AttractionRow from '../components/AttractionRow';
-import { readResource } from '../api/ApiService';
+import { BASE_URL, readResource } from '../api/ApiService';
+import axios from 'axios';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -25,12 +26,6 @@ const AnimatedBox = styled(Box)(({ theme, delay }) => ({
   animation: `${fadeIn} 1s ease-out ${delay}s both`,
 }));
 
-// Mock user data
-const user = {
-  username: 'c',
-  email: 'john.doe@example.com',
-  avatar: 'https://example.com/avatar.jpg',
-};
 
 // Mock visited and liked attractions
 const visitedAttractions = [
@@ -43,11 +38,25 @@ const likedAttractions = [
   { id: 4, name: 'Machu Picchu', description: 'Incan citadel in Peru', image: 'https://example.com/machupicchu.jpg' },
 ];
 
-const userend = `crpred/recommend/?username=${user.username}`
-const recommendations = readResource("todos/")
-console.log(recommendations)
+// const userend = `crpred/recommend/?username=${user.username}`
+// const recommendations = readResource("todos/")
+// console.log(recommendations)
 
 function ProfilePage() {
+
+  const [user, setUser] = useState({})
+  // Mock user data
+  const getUserData = ()=> {
+    const userResponce = async ()=> await axios.get(`${BASE_URL}api/users/${username}/`)
+    userResponce()
+    .then((response)=> setUser(response.data))
+    .catch((err)=> console.log(err))
+  } 
+
+  useEffect(()=>{
+    getUserData()
+  },[])
+
   return (
     <StyledContainer maxWidth="lg">
       <AnimatedBox delay={0}>
@@ -60,11 +69,11 @@ function ProfilePage() {
         <AnimatedBox delay={0.2} sx={{ flex: 1 }}>
           <Paper elevation={3} sx={{ p: 3, textAlign: 'center' }}>
             <Avatar
-              src={user.avatar}
-              alt={user.name}
+              // src={user.avatar || null}
+              alt={user.username}
               sx={{ width: 120, height: 120, margin: 'auto', mb: 2 }}
             />
-            <Typography variant="h5" gutterBottom>{user.name}</Typography>
+            <Typography variant="h5" gutterBottom>{user.username}</Typography>
             <Typography variant="body1" color="text.secondary">{user.email}</Typography>
           </Paper>
         </AnimatedBox>

@@ -1,9 +1,11 @@
 // src/pages/LandingPage.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { styled, keyframes } from '@mui/material/styles';
 import AttractionRow from '../components/AttractionRow';
+import axios from 'axios';
+import { BASE_URL, username } from '../api/ApiService';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -44,14 +46,14 @@ const AnimatedButton = styled(Button)(({ theme }) => ({
 }));
 
 // Mock data
-const recommendedAttractions = [
-  { id: 5, name: 'Taj Mahal', description: 'Iconic mausoleum in Agra, India', image: 'https://example.com/tajmahal.jpg' },
-  { id: 6, name: 'Grand Canyon', description: 'Vast canyon in Arizona, USA', image: 'https://example.com/grandcanyon.jpg' },
-  { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
-  { id: 2, name: 'Colosseum', description: 'Ancient amphitheater in Rome', image: 'https://example.com/colosseum.jpg' },
-  { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
-  { id: 2, name: 'Colosseum', description: 'Ancient amphitheater in Rome', image: 'https://example.com/colosseum.jpg' },
-];
+// const recommendedAttractions = [
+//   { id: 5, name: 'Taj Mahal', description: 'Iconic mausoleum in Agra, India', image: 'https://example.com/tajmahal.jpg' },
+//   { id: 6, name: 'Grand Canyon', description: 'Vast canyon in Arizona, USA', image: 'https://example.com/grandcanyon.jpg' },
+//   { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
+//   { id: 2, name: 'Colosseum', description: 'Ancient amphitheater in Rome', image: 'https://example.com/colosseum.jpg' },
+//   { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
+//   { id: 2, name: 'Colosseum', description: 'Ancient amphitheater in Rome', image: 'https://example.com/colosseum.jpg' },
+// ];
 
 const popularAttractions = [
   { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
@@ -69,6 +71,20 @@ const recentlyViewed = [
 
 
 function LandingPage() {
+
+  const[preds, setPreds] = useState([])
+
+  const getUserPreds= ()=> {
+    const userResponce = async ()=> await axios.get(`${BASE_URL}crpred/recommend/?username=${username}`)
+    userResponce()
+    .then((response)=> setPreds(response.data))
+    .catch((err)=> console.log(err))
+  } 
+
+  useEffect(()=>{
+    getUserPreds()
+  },[])
+
   return (
     <StyledContainer maxWidth={false}>
       <HeroSection>
@@ -90,7 +106,7 @@ function LandingPage() {
         </AnimatedButton>
       </HeroSection>
       <Box sx={{ mb: 4 }}>
-        <AttractionRow title="Recommended for You" attractions={recommendedAttractions} />
+        <AttractionRow title="Recommended for You" attractions={preds} />
         <AttractionRow title="Popular Attractions" attractions={popularAttractions} />
         <AttractionRow title="Recently Viewed" attractions={recentlyViewed} />
       </Box>

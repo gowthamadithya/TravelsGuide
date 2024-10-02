@@ -1,105 +1,146 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
 from .models import Rating
 
+# for model ref visit 
+# https://www.kaggle.com/code/gowthamadithya/mfm-nn
+
 class PlacesDataset(Dataset):
-    def __init__(self, data_frame):
-        self.user_idx = torch.LongTensor(data_frame['user_idx'].values)
-        self.place_idx = torch.LongTensor(data_frame['place_idx'].values)
-        self.ratings = torch.FloatTensor(data_frame['rating'].values)
+    def __init__(self, df):
+        self.userdf = torch.tensor(df['user_id'].values, dtype=torch.long) 
+        self.placedf = torch.tensor(df['item_id'].values, dtype=torch.long)
+        self.ratingdf = torch.tensor(df['rating'].values, dtype=torch.float32)
 
     def __len__(self):
-        return len(self.ratings)
+        return len(self.ratingdf)
 
-    def __getitem__(self, idx):
-        return self.user_idx[idx], self.place_idx[idx], self.ratings[idx]
+    def  __getitem__(self, index):
+        return (self.userdf[index], self.placedf[index], self.ratingdf[index])
 
-class MatrixFactorization(nn.Module):
-    def __init__(self, n_users, n_places, embedding_dim=50):
-        super(MatrixFactorization, self).__init__()
-        self.user_embeddings = nn.Embedding(n_users, embedding_dim)
-        self.place_embeddings = nn.Embedding(n_places, embedding_dim)
-    
-    def forward(self, user_idx, place_idx):
-        user_embeds = self.user_embeddings(user_idx)
-        place_embeds = self.place_embeddings(place_idx)
-        ratings_pred = (user_embeds * place_embeds).sum(dim=1)
-        return ratings_pred
+class Mfm(nn.Module):
+    def __init__(self, num_users, num_places, vector_dim=50):
+        super(Mfm, self).__init__()
+        self.user_vector_set = nn.Embedding(num_users, vector_dim)
+        self.place_vector_set = nn.Embedding(num_places, vector_dim)
+        
+    def forward(self, users, places):
+        return (self.user_vector_set(users) * self.place_vector_set(places)).sum(1)
 
 class RecommendationSystem:
     def __init__(self):
         self.model = None
-        self.user_to_index = {}
-        self.place_to_index = {}
-        self.n_users = 0
-        self.n_places = 0
+        self.df = None
+        self.num_users = 0
+        self.num_places = 0
+        self.unique_places = None
+        self.unique_users = None
+        self.batch_size = 64
+        self.decline_streak_threshold = 3
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def load_data(self):
         ratings = Rating.objects.all().values('username', 'place', 'rating')
         df = pd.DataFrame(ratings)
         
-        user_ids = df['username'].unique()
-        place_ids = df['place'].unique()
+        self.unique_users = df['username'].unique()
+        self.unique_places = df['place'].unique()
         
-        self.n_users = len(user_ids)
-        self.n_places = len(place_ids)
+        self.num_users = len(self.unique_users)
+        self.num_places = len(self.unique_places)
 
-        self.user_to_index = {user: idx for idx, user in enumerate(user_ids)}
-        self.place_to_index = {place: idx for idx, place in enumerate(place_ids)}
-        
-        df['user_idx'] = df['username'].map(self.user_to_index)
-        df['place_idx'] = df['place'].map(self.place_to_index)
+        df['user_id'] = pd.factorize(df['username'])[0]
+        df['item_id'] = pd.factorize(df['place'])[0]
         
         return df
 
     def train_model(self):
-        df = self.load_data()
-        dataset = PlacesDataset(df)
-        dataloader = DataLoader(dataset, batch_size=64, shuffle=True)
+        self.df = self.load_data()
+        dataset = PlacesDataset(self.df)
+
+        # Split the dataset into training and validation sets
+        train_size = int(0.8 * len(dataset))
+        val_size = len(dataset) - train_size
+        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+        train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
+        val_loader = DataLoader(val_dataset, batch_size=self.batch_size, shuffle=False)
         
-        model = MatrixFactorization(self.n_users, self.n_places)
-        criterion = nn.MSELoss()
-        optimizer = optim.Adam(model.parameters(), lr=0.001)
+        model = Mfm(self.num_users, self.num_places, 50).to(self.device)
+        loss_fn = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=1e-3)
         
-        n_epochs = 10
+        n_epochs = 128
+        best_val_loss = float('inf')
+        decline_streak = 0
+        
         for epoch in range(n_epochs):
+            # Training phase
             model.train()
             epoch_loss = 0.0
             
-            for user_batch, place_batch, rating_batch in dataloader:
+            for user_batch, place_batch, rating_batch in train_loader:
                 optimizer.zero_grad()
-                predictions = model(user_batch, place_batch)
-                loss = criterion(predictions, rating_batch)
+                predictions = model(user_batch.to(self.device), place_batch.to(self.device))
+                loss = loss_fn(predictions, rating_batch.to(self.device))
                 loss.backward()
                 optimizer.step()
                 epoch_loss += loss.item() * len(rating_batch)
             
-            epoch_loss /= len(dataset)
-            print(f'Epoch {epoch+1}/{n_epochs}, Loss: {epoch_loss}')
+            epoch_loss /= len(train_dataset)
+            print(f'Epoch {epoch + 1}/{n_epochs}, Training Loss: {epoch_loss}')
+
+            # Validation phase
+            model.eval()
+            val_loss = 0.0
+            
+            with torch.no_grad():
+                for user_batch, place_batch, rating_batch in val_loader:
+                    predictions = model(user_batch.to(self.device), place_batch.to(self.device))
+                    loss = loss_fn(predictions, rating_batch.to(self.device))
+                    val_loss += loss.item() * len(rating_batch)
+
+            val_loss /= len(val_dataset)
+            print(f'Validation Loss: {val_loss}')
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                decline_streak = 0
+            else:
+                decline_streak += 1
         
+            if decline_streak > self.decline_streak_threshold:
+                print('hit decline streak hence stopping training')
+                break
+
         model.eval()
         self.model = model
         return model
 
-    def recommend(self, user_id):
+    def recommend(self, username):
         if self.model is None:
             self.train_model()
-
-        if user_id not in self.user_to_index:
+    
+        if username not in self.unique_users:
             return None
+        
+        user_id = self.df.loc[self.df['username'] == username, 'user_id'].values[0]
 
-        user_index = self.user_to_index[user_id]
-        user_idx_tensor = torch.LongTensor([user_index])
-        
-        all_place_idx = torch.LongTensor(list(range(self.n_places)))
-        predicted_ratings = self.model(user_idx_tensor.repeat(self.n_places), all_place_idx)
-        
-        place_predictions = pd.DataFrame({
-            'place': list(self.place_to_index.keys()),
-            'predicted_rating': predicted_ratings.detach().numpy()
+        # num_places = self.model.place_vector_set.weight.shape[0]
+
+        with torch.no_grad():
+            user_id_in_tensor = torch.LongTensor([user_id])
+            place_ids = torch.LongTensor(list(range(self.num_places)))
+            predictions = self.model(user_id_in_tensor.repeat(self.num_places), place_ids)
+
+        predictions_np = predictions.detach().numpy()  
+    
+        predictions_df = pd.DataFrame({
+            'item_id': range(self.num_places),
+            'item': self.unique_places,  
+            'predicted_rating': predictions_np
         })
-        
-        return place_predictions.sort_values(by='predicted_rating', ascending=False)
+    
+        return predictions_df.sort_values(by='predicted_rating', ascending=False)
