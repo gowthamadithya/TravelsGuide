@@ -10,8 +10,8 @@ from .models import Rating
 
 class PlacesDataset(Dataset):
     def __init__(self, df):
-        self.userdf = torch.tensor(df['user_id'].values, dtype=torch.long) 
-        self.placedf = torch.tensor(df['item_id'].values, dtype=torch.long)
+        self.userdf = torch.tensor(df['user_idx'].values, dtype=torch.long) 
+        self.placedf = torch.tensor(df['place_idx'].values, dtype=torch.long)
         self.ratingdf = torch.tensor(df['rating'].values, dtype=torch.float32)
 
     def __len__(self):
@@ -23,6 +23,11 @@ class PlacesDataset(Dataset):
 class Mfm(nn.Module):
     def __init__(self, num_users, num_places, vector_dim=50):
         super(Mfm, self).__init__()
+        # indexing from 1 to num_users + 1 as django ids typically start from 1
+        # ingoring the 0th index as padding ,
+        # self.user_vector_set = nn.Embedding(num_users + 1, vector_dim, padding_idx=0)
+        # bad logic as in reational db the id will be unique and stay unique even in case
+        # of deletions
         self.user_vector_set = nn.Embedding(num_users, vector_dim)
         self.place_vector_set = nn.Embedding(num_places, vector_dim)
         
@@ -42,18 +47,24 @@ class RecommendationSystem:
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     def load_data(self):
-        ratings = Rating.objects.all().values('username', 'place', 'rating')
+        ratings = Rating.objects.all().values('user_id', 'place_id', 'rating')
         df = pd.DataFrame(ratings)
+
+
+        # if len(df) < 2:
+        #     print("Not enough ratings found in the database for training. At least 2 required.")
+        #     return None  # Indicate that the DataFrame is not usable
         
-        self.unique_users = df['username'].unique()
-        self.unique_places = df['place'].unique()
+        self.unique_users = df['user_id'].unique()
+        self.unique_places = df['place_id'].unique()
         
         self.num_users = len(self.unique_users)
         self.num_places = len(self.unique_places)
-
-        df['user_id'] = pd.factorize(df['username'])[0]
-        df['item_id'] = pd.factorize(df['place'])[0]
         
+        df['user_idx'] = pd.factorize(df['user_id'])[0]
+        df['place_idx'] = pd.factorize(df['place_id'])[0]
+
+        print(df)
         return df
 
     def train_model(self):
@@ -119,27 +130,23 @@ class RecommendationSystem:
         self.model = model
         return model
 
-    def recommend(self, username):
+    def recommend(self, user_id):
+        user_id = int(user_id)
         if self.model is None:
             self.train_model()
-    
-        if username not in self.unique_users:
-            return None
         
-        user_id = self.df.loc[self.df['username'] == username, 'user_id'].values[0]
-
-        # num_places = self.model.place_vector_set.weight.shape[0]
-
+        user_idx = self.df.loc[self.df['user_id'] == user_id, 'user_idx'].values[0]
+        
         with torch.no_grad():
-            user_id_in_tensor = torch.LongTensor([user_id])
+            user_idx_in_tensor = torch.LongTensor([user_idx])
             place_ids = torch.LongTensor(list(range(self.num_places)))
-            predictions = self.model(user_id_in_tensor.repeat(self.num_places), place_ids)
+            predictions = self.model(user_idx_in_tensor.repeat(self.num_places), place_ids)
 
         predictions_np = predictions.detach().numpy()  
     
         predictions_df = pd.DataFrame({
-            'item_id': range(self.num_places),
-            'item': self.unique_places,  
+            'place_idx': range(self.num_places),
+            'place': self.unique_places,  
             'predicted_rating': predictions_np
         })
     

@@ -11,6 +11,8 @@ import LandingPage from './pages/LandingPage';
 import SearchPage from './pages/SearchPage';
 import AttractionDetailPage from './pages/AttractionDetailPage';
 import ProfilePage from './pages/ProfilePage';
+import SignupPage from './pages/SignupPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/attraction/:id" element={<AttractionDetailPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/login" element={<LoginPage />} />
             </Routes>
           </Box>
           <Footer />

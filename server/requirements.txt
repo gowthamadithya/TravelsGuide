@@ -1,6 +1,7 @@
 django
 djangorestframework
 django-cors-headers
+djangorestframework-simplejwt
 torch
 pandas
 numpy
