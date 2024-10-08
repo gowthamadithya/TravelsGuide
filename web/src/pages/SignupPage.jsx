@@ -1,9 +1,10 @@
 // src/pages/SignupPage.js
 import React, { useState } from 'react';
-import { Container, Typography, Box, Paper, TextField, Button } from '@mui/material';
+import { Container, Typography, Box, Paper, TextField, Button, Link as MuiLink } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import axios from 'axios';
 import { BASE_URL } from '../api/ApiService';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -31,6 +32,9 @@ function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [age, setAge] = useState(0);
+  const [errorMessage, setErrorMessage] = useState(''); // State for error message
+
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -40,13 +44,26 @@ function SignupPage() {
       'last_name': lastname,
       email,
       password,
-      'age': Number(age)
-    }
+      'age': Number(age),
+    };
 
-    console.log(signupPayload)
-    await axios.post(`${BASE_URL}api/signup/`, signupPayload)
-    .then((signupResponse) => console.log(signupResponse.data))
-    .catch((error) => console.log(error.response ? error.response.data : error.message));
+    try {
+      const signupResponse = await axios.post(`${BASE_URL}api/signup/`, signupPayload);
+      console.log(signupResponse.data);
+      // Optionally, redirect to login or another page on successful signup
+      navigate('/login'); // Redirect to login after successful signup
+    } catch (error) {
+      if (error.response) {
+        // Check if the account already exists
+        if (error.response.status === 409) { // Assuming 409 Conflict for existing accounts
+          setErrorMessage('An account with this email already exists.');
+        } else {
+          console.log(error.response.data);
+        }
+      } else {
+        console.log(error.message);
+      }
+    }
   };
 
   return (
@@ -68,8 +85,8 @@ function SignupPage() {
               onChange={(e) => setUsername(e.target.value)}
               required
             />
-          <TextField
-              label="firstname"
+            <TextField
+              label="First Name"
               variant="outlined"
               fullWidth
               margin="normal"
@@ -78,7 +95,7 @@ function SignupPage() {
               required
             />
             <TextField
-              label="lastname"
+              label="Last Name"
               variant="outlined"
               fullWidth
               margin="normal"
@@ -118,7 +135,18 @@ function SignupPage() {
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
               Sign Up
             </Button>
+            {errorMessage && (
+              <Typography color="error" sx={{ mt: 2 }}>
+                {errorMessage}
+              </Typography>
+            )}
           </form>
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            Already have an account?{' '}
+            <MuiLink href="/login" variant="body2">
+              Log in
+            </MuiLink>
+          </Typography>
         </Paper>
       </AnimatedBox>
     </StyledContainer>

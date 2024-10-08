@@ -33,7 +33,7 @@ function AttractionCard({ attraction }) {
     <StyledCard>
       <StyledCardMedia
         component="img"
-        image={attraction.image}
+        image={attraction.image_url}
         alt={attraction.name}
       />
       <StyledCardContent>

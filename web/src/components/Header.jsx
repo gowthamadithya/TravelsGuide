@@ -158,12 +158,26 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { AppBar, Toolbar, Typography, InputBase, IconButton, Menu, MenuItem, Box, Paper, Modal, Fade } from '@mui/material';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  InputBase,
+  IconButton,
+  Menu,
+  MenuItem,
+  Box,
+  Paper,
+  Modal,
+  Fade
+} from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Ensure axios is imported
+import { BASE_URL } from '../api/ApiService'; // Ensure BASE_URL is correctly imported
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -243,6 +257,7 @@ function Header() {
   const handleSearchChange = (event) => {
     const value = event.target.value;
     setSearchValue(value);
+
     // Mock suggestion logic - replace with actual API call in a real application
     const mockSuggestions = ['paris', 'rome', 'italy', 'india', 'karakura'].filter(item =>
       item.toLowerCase().includes(value.toLowerCase())
@@ -270,6 +285,31 @@ function Header() {
     setOpenSearch(false);
     setSearchValue('');
     setSuggestions([]);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${BASE_URL}api/logout/`, {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+        }
+      });
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      navigate('/login');
+    } catch (error) {
+      console.log('Logout failed:', error);
+    }
+  };
+
+  const handleSearchSubmit = (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (searchValue) {
+        navigate(`/attraction/${searchValue.toLowerCase().replace(/\s/g, '-')}`);
+        handleCloseSearch();
+      }
+    }
   };
 
   return (
@@ -307,7 +347,7 @@ function Header() {
           onClose={handleClose}
         >
           <MenuItem onClick={handleClose} component={Link} to="/profile">Profile</MenuItem>
-          <MenuItem onClick={handleClose}>Logout</MenuItem>
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Toolbar>
       <Modal
@@ -316,7 +356,7 @@ function Header() {
         closeAfterTransition
       >
         <Fade in={openSearch}>
-          <ModalSearch>
+          <ModalSearch onKeyPress={handleSearchSubmit}>
             <Search>
               <SearchIconWrapper>
                 <SearchIcon />
@@ -327,6 +367,7 @@ function Header() {
                 value={searchValue}
                 onChange={handleSearchChange}
                 autoFocus
+                onKeyPress={handleSearchSubmit} // Add key press event handler
               />
               {searchValue && (
                 <ClearButton size="small" onClick={handleClearSearch}>

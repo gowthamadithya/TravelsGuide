@@ -1,5 +1,5 @@
 // src/App.js
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -15,6 +15,7 @@ import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
 
 function App() {
+  const [isAuth, setisAuth] = useState(false)
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

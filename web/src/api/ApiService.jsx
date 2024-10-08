@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const BASE_URL = 'http://127.0.0.1:8000/';
-export const username = 'c'
+export const accessToken = localStorage.getItem('userDetails')
 
 const apiService = async (method, endpoint, data = null, params = {}) => {
   try {

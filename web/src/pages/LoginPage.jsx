@@ -1,9 +1,10 @@
 // src/pages/LoginPage.js
 import React, { useState } from 'react';
-import { Container, Typography, Box, Paper, TextField, Button } from '@mui/material';
+import { Container, Typography, Box, Paper, TextField, Button, Link as MuiLink } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import axios from 'axios';
 import { BASE_URL } from '../api/ApiService';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -27,17 +28,38 @@ const AnimatedBox = styled(Box)(({ theme, delay }) => ({
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // State for error message
+
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleLogin = async (e) => {
     e.preventDefault();
     const loginPayload = {
       username,
       password,
-    }
+    };
 
-    await axios.post(`${BASE_URL}api/login/`, loginPayload)
-    .then((loginResponse) => console.log(loginResponse.data))
-    .catch((error) => console.log(error.response ? error.response.data : error.message));
+    try {
+      const loginResponse = await axios.post(`${BASE_URL}api/login/`, loginPayload);
+      console.log(loginResponse.data);
+      // Store tokens in localStorage
+      localStorage.setItem('access_token', loginResponse.data.access);
+      localStorage.setItem('refresh_token', loginResponse.data.refresh);
+      // Optionally redirect to the homepage or dashboard upon successful login
+      navigate('/'); // Redirect after successful login
+      
+    } catch (error) {
+      if (error.response) {
+        // Check for specific errors
+        if (error.response.status === 401) {
+          setErrorMessage('Invalid username or password.');
+        } else {
+          console.log(error.response.data);
+        }
+      } else {
+        console.log(error.message);
+      }
+    }
   };
 
   return (
@@ -50,7 +72,7 @@ function LoginPage() {
       <AnimatedBox delay={0.2}>
         <Paper elevation={3} sx={{ p: 3 }}>
           <form onSubmit={handleLogin}>
-          <TextField
+            <TextField
               label="Username"
               variant="outlined"
               fullWidth
@@ -69,10 +91,21 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            {errorMessage && (
+              <Typography color="error" sx={{ mt: 2 }}>
+                {errorMessage}
+              </Typography>
+            )}
             <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
               Log In
             </Button>
           </form>
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            Don't have an account?{' '}
+            <MuiLink href="/signup" variant="body2">
+              Sign up
+            </MuiLink>
+          </Typography>
         </Paper>
       </AnimatedBox>
     </StyledContainer>
