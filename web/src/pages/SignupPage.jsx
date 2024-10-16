@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { Container, Typography, Box, Paper, TextField, Button, Link as MuiLink } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
-import axios from 'axios';
-import { BASE_URL } from '../api/ApiService';
+import { BASE_URL, api } from '../api/ApiService';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const fadeIn = keyframes`
@@ -48,7 +47,7 @@ function SignupPage() {
     };
 
     try {
-      const signupResponse = await axios.post(`${BASE_URL}api/signup/`, signupPayload);
+      const signupResponse = await api.post(`${BASE_URL}api/signup/`, signupPayload);
       console.log(signupResponse.data);
       // Optionally, redirect to login or another page on successful signup
       navigate('/login'); // Redirect to login after successful signup

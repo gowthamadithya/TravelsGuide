@@ -1,9 +1,10 @@
 // src/pages/AttractionDetailPage.js
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Typography, Grid as Grid2, Paper, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import BookingForm from '../components/BookingForm';
+import { BASE_URL, api } from '../api/ApiService';
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   display: 'flex',
@@ -20,20 +21,29 @@ const AnimatedGrid = styled(Grid2)(({ theme }) => ({
   },
 }));
 
-// Mock data - replace with actual API calls in a real application
-const getAttractionById = (id) => ({
-  id: id,
-  name: 'Eiffel Tower',
-  description: 'The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower.',
-  image: 'https://example.com/eiffel.jpg',
-  price: 25,
-  location: 'Paris, France',
-  rating: 4.5,
-});
 
 function AttractionDetailPage() {
   const { id } = useParams();
-  const attraction = getAttractionById(id);
+  const [attraction, setAttraction] = useState({})
+
+  const getAttractionById = async (id) => {
+    try {
+      const response = await api.get(`${BASE_URL}api/places/${id}/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      setAttraction(response.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(()=> {
+    getAttractionById(id);
+  },[id])
+
+  console.log(attraction)
 
   return (
     <StyledContainer maxWidth={false}>
@@ -43,16 +53,16 @@ function AttractionDetailPage() {
       <AnimatedGrid container spacing={3}>
         <Grid2 item xs={12} md={8}>
           <Paper elevation={3}>
-            <Box component="img" src={attraction.image} alt={attraction.name} sx={{ width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'cover' }} />
+            <Box component="img" src={attraction.image_url} alt={attraction.name} sx={{ width: '100%', height: 'auto', maxHeight: '500px', objectFit: 'cover' }} />
             <Box sx={{ p: 2 }}>
               <Typography variant="h6" gutterBottom>Description</Typography>
               <Typography variant="body1">{attraction.description}</Typography>
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Location</Typography>
               <Typography variant="body1">{attraction.location}</Typography>
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Price</Typography>
-              <Typography variant="body1">${attraction.price}</Typography>
+              <Typography variant="body1">${attraction.average_price}</Typography>
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Rating</Typography>
-              <Typography variant="body1">{attraction.rating} / 5</Typography>
+              <Typography variant="body1">{attraction.average_rating} / 5</Typography>
             </Box>
           </Paper>
         </Grid2>

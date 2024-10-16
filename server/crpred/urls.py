@@ -3,5 +3,5 @@ from .views import RatingListCreate, RecommendUser
 
 urlpatterns = [
     path('ratings/', RatingListCreate.as_view(), name='rating-list-create'),
-    path('recommend/', RecommendUser.as_view(), name='recommend-user'),
+    path('create/', RecommendUser.as_view(), name='recommend-user'),
 ]

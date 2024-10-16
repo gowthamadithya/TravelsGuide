@@ -63,9 +63,9 @@ def user_list_create(request):
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])  # Require JWT authentication
-def user_detail(request, pk):
+def user_detail(request, username):
     try:
-        user = User.objects.get(pk=pk)
+        user = User.objects.get(username=username)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -86,7 +86,7 @@ def user_detail(request, pk):
 
 # Place Views
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])  # Require JWT authentication
+@permission_classes([IsAuthenticated])   # Require JWT authentication
 def place_list_create(request):
     if request.method == 'GET':
         places = Place.objects.all()
@@ -94,7 +94,7 @@ def place_list_create(request):
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = PlaceSerializer(data=request.data)
+        serializer = PlaceSerializer(data=request.data, many=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

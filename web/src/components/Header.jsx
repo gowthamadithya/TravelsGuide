@@ -157,7 +157,7 @@
 
 
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -169,15 +169,14 @@ import {
   Box,
   Paper,
   Modal,
-  Fade
+  Fade,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Ensure axios is imported
-import { BASE_URL } from '../api/ApiService'; // Ensure BASE_URL is correctly imported
+import { BASE_URL, api } from '../api/ApiService';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -187,7 +186,6 @@ const Search = styled('div')(({ theme }) => ({
     backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
   marginRight: theme.spacing(2),
-  marginLeft: 0,
   width: '100%',
   [theme.breakpoints.up('sm')]: {
     marginLeft: theme.spacing(3),
@@ -211,7 +209,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   '& .MuiInputBase-input': {
     padding: theme.spacing(1, 1, 1, 0),
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    paddingRight: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
   },
@@ -242,57 +239,33 @@ function Header() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [searchValue, setSearchValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [places, setPlaces] = useState([]);
   const [openSearch, setOpenSearch] = useState(false);
   const navigate = useNavigate();
-  const searchRef = useRef(null);
+
+  const fetchPlaces = async () => {
+    try {
+      const response = await api.get(`${BASE_URL}api/places/`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
+      });
+      setPlaces(response.data);
+    } catch (err) {
+      console.error('Failed to fetch places:', err);
+    }
+  };
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
   };
 
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSearchChange = (event) => {
-    const value = event.target.value;
-    setSearchValue(value);
-
-    // Mock suggestion logic - replace with actual API call in a real application
-    const mockSuggestions = ['paris', 'rome', 'italy', 'india', 'karakura'].filter(item =>
-      item.toLowerCase().includes(value.toLowerCase())
-    );
-    setSuggestions(mockSuggestions);
-  };
-
-  const handleSuggestionClick = (suggestion) => {
-    setSearchValue(suggestion);
-    setSuggestions([]);
-    setOpenSearch(false);
-    navigate(`/attraction/${suggestion.toLowerCase().replace(/\s/g, '-')}`);
-  };
-
-  const handleClearSearch = () => {
-    setSearchValue('');
-    setSuggestions([]);
-  };
-
-  const handleOpenSearch = () => {
-    setOpenSearch(true);
-  };
-
-  const handleCloseSearch = () => {
-    setOpenSearch(false);
-    setSearchValue('');
-    setSuggestions([]);
-  };
-
   const handleLogout = async () => {
     try {
-      await axios.post(`${BASE_URL}api/logout/`, {}, {
+      await api.post(`${BASE_URL}api/logout/`, {}, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
       });
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
@@ -302,13 +275,38 @@ function Header() {
     }
   };
 
+  const handleSearch = (event) => {
+    const value = event.target.value;
+    setSearchValue(value);
+    setSuggestions(places.filter(item => item.name.toLowerCase().includes(value.toLowerCase())));
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    navigate(`/attraction/${suggestion.id}`);
+    handleCloseSearch();
+  };
+
+  const handleClearSearch = () => {
+    setSearchValue('');
+    setSuggestions([]);
+  };
+
+  const handleOpenSearch = () => {
+    setOpenSearch(true);
+    fetchPlaces();
+  };
+
+  const handleCloseSearch = () => {
+    setOpenSearch(false);
+    setSearchValue('');
+    setSuggestions([]);
+  };
+
   const handleSearchSubmit = (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && searchValue) {
       event.preventDefault();
-      if (searchValue) {
-        navigate(`/attraction/${searchValue.toLowerCase().replace(/\s/g, '-')}`);
-        handleCloseSearch();
-      }
+      navigate(`/attraction/${searchValue.toLowerCase().replace(/\s/g, '-')}`);
+      handleCloseSearch();
     }
   };
 
@@ -323,7 +321,6 @@ function Header() {
         </IconButton>
         <IconButton
           size="large"
-          aria-label="account of current user"
           aria-controls="menu-appbar"
           aria-haspopup="true"
           onClick={handleMenu}
@@ -334,27 +331,14 @@ function Header() {
         <Menu
           id="menu-appbar"
           anchorEl={anchorEl}
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
           open={Boolean(anchorEl)}
-          onClose={handleClose}
+          onClose={() => setAnchorEl(null)}
         >
-          <MenuItem onClick={handleClose} component={Link} to="/profile">Profile</MenuItem>
+          <MenuItem onClick={() => setAnchorEl(null)} component={Link} to="/profile">Profile</MenuItem>
           <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Toolbar>
-      <Modal
-        open={openSearch}
-        onClose={handleCloseSearch}
-        closeAfterTransition
-      >
+      <Modal open={openSearch} onClose={handleCloseSearch} closeAfterTransition>
         <Fade in={openSearch}>
           <ModalSearch onKeyPress={handleSearchSubmit}>
             <Search>
@@ -363,11 +347,10 @@ function Header() {
               </SearchIconWrapper>
               <StyledInputBase
                 placeholder="Search..."
-                inputProps={{ 'aria-label': 'search' }}
                 value={searchValue}
-                onChange={handleSearchChange}
+                onChange={handleSearch}
                 autoFocus
-                onKeyPress={handleSearchSubmit} // Add key press event handler
+                inputProps={{ 'aria-label': 'search' }}
               />
               {searchValue && (
                 <ClearButton size="small" onClick={handleClearSearch}>
@@ -376,19 +359,10 @@ function Header() {
               )}
             </Search>
             {suggestions.length > 0 && (
-              <Paper
-                sx={{
-                  mt: 1,
-                  maxHeight: 300,
-                  overflow: 'auto',
-                }}
-              >
-                {suggestions.map((suggestion, index) => (
-                  <MenuItem
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
-                  >
-                    {suggestion}
+              <Paper sx={{ mt: 1, maxHeight: 300, overflow: 'auto' }}>
+                {suggestions.map((suggestion) => (
+                  <MenuItem key={suggestion.id} onClick={() => handleSuggestionClick(suggestion)}>
+                    {suggestion.name}
                   </MenuItem>
                 ))}
               </Paper>
@@ -401,3 +375,4 @@ function Header() {
 }
 
 export default Header;
+

@@ -1,11 +1,11 @@
 // src/pages/ProfilePage.js
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Container, Typography, Box, Paper, Avatar } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import AttractionCard from '../components/AttractionCard';
 import AttractionRow from '../components/AttractionRow';
-import { BASE_URL, readResource } from '../api/ApiService';
-import axios from 'axios';
+import { BASE_URL, api, readResource, userName } from '../api/ApiService';
+import { StoreContext } from '../Store/Store';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -45,9 +45,10 @@ const likedAttractions = [
 function ProfilePage() {
 
   const [user, setUser] = useState({})
+  const {state, dispatch } = useContext(StoreContext)
   // Mock user data
   const getUserData = ()=> {
-    const userResponce = async ()=> await axios.get(`${BASE_URL}api/users/${username}/`)
+    const userResponce = async ()=> await api.get(`${BASE_URL}api/users/${userName}/`)
     userResponce()
     .then((response)=> setUser(response.data))
     .catch((err)=> console.log(err))

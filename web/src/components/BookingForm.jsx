@@ -1,6 +1,7 @@
 // src/components/BookingForm.js
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
+import { api, userName } from '../api/ApiService';
 
 function BookingForm({ attractionId }) {
   const [bookingData, setBookingData] = useState({
@@ -14,7 +15,7 @@ function BookingForm({ attractionId }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    // Here you would typically send the booking data to your backend
+    api.put(`${BASE_URL}api/users/${userName}/`, )
     console.log('Booking submitted:', { attractionId, ...bookingData });
   };
 

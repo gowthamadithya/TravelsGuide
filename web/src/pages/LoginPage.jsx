@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import { Container, Typography, Box, Paper, TextField, Button, Link as MuiLink } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
-import axios from 'axios';
-import { BASE_URL } from '../api/ApiService';
+import {api, BASE_URL } from '../api/ApiService';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 const fadeIn = keyframes`
@@ -40,14 +39,16 @@ function LoginPage() {
     };
 
     try {
-      const loginResponse = await axios.post(`${BASE_URL}api/login/`, loginPayload);
+      const loginResponse = await api.post(`${BASE_URL}api/login/`, loginPayload);
       console.log(loginResponse.data);
+      console.log('Access Token:', loginResponse.data.access);
+      console.log('Refresh Token:', loginResponse.data.refresh);
       // Store tokens in localStorage
       localStorage.setItem('access_token', loginResponse.data.access);
       localStorage.setItem('refresh_token', loginResponse.data.refresh);
       // Optionally redirect to the homepage or dashboard upon successful login
       navigate('/'); // Redirect after successful login
-      
+      localStorage.setItem('user_name', username);
     } catch (error) {
       if (error.response) {
         // Check for specific errors

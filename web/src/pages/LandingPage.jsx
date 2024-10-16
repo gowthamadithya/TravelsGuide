@@ -4,8 +4,7 @@ import { Container, Typography, Button, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { styled, keyframes } from '@mui/material/styles';
 import AttractionRow from '../components/AttractionRow';
-import axios from 'axios';
-import { BASE_URL } from '../api/ApiService';
+import { BASE_URL, api } from '../api/ApiService';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -45,11 +44,6 @@ const AnimatedButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-const popularAttractions = [
-  { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
-  { id: 2, name: 'Colosseum', description: 'Ancient amphitheater in Rome', image: 'https://example.com/colosseum.jpg' },
-  // Add more attractions...
-];
 
 const recentlyViewed = [
   { id: 3, name: 'Great Wall of China', description: 'Ancient fortification in northern China', image: 'https://example.com/greatwall.jpg' },
@@ -59,16 +53,18 @@ const recentlyViewed = [
 
 function LandingPage() {
   const [preds, setPreds] = useState([]);
+  const [pops, setPops] = useState([]);
   const [error, setError] = useState(null); // State for error handling
 
   const getUserPreds = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}api/places/`, {
+      const response = await api.get(`${BASE_URL}api/places/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
       });
       setPreds(response.data);
+      setPops(response.data);
     } catch (err) {
       console.error(err);
       setError('Failed to fetch user predictions. unauthorised'); // Set an error message
@@ -106,8 +102,8 @@ function LandingPage() {
           </Typography>
         )}
         <AttractionRow title="Recommended for You" attractions={preds} />
-        <AttractionRow title="Popular Attractions" attractions={popularAttractions} />
-        <AttractionRow title="Recently Viewed" attractions={recentlyViewed} />
+        <AttractionRow title="Popular Attractions" attractions={pops} />
+        <AttractionRow title="continue on  your last search" attractions={recentlyViewed} />
       </Box>
     </StyledContainer>
   );
