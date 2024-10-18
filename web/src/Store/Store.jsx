@@ -3,11 +3,21 @@ import { createContext, useReducer } from "react";
 const StoreContext = createContext(null);
 
 // Define an initial state
-const initialState = { user: null };
+const initialState = { user: null, places: null, ratings: null };
 
 // Create a reducer function
 function reducer(state, action) {
   switch (action.type) {
+    case 'SET_USER':
+      return {
+        ...state,
+        user: {...state.user, ...action.payload}
+      };
+    case 'SET_PLACES':
+        return {
+          ...state,
+          user: {...state.places, ...action.payload}
+        };
     case 'ADD_VISITED_PLACE':
       return {
         ...state,
@@ -22,12 +32,12 @@ function reducer(state, action) {
   }
 }
 
-const StoreProvider = ({ passedDownElements}) => {
+const StoreProvider = ({ children}) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   return (
     <StoreContext.Provider value={{ state, dispatch }}>
-      {passedDownElements}
+      {children}
     </StoreContext.Provider>
   );
 };

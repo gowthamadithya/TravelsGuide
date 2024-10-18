@@ -4,8 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.hashers import check_password
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import User, Place
-from .serializers import UserSerializer, PlaceSerializer
+from .models import User, Place, Category
+from .serializers import UserSerializer, PlaceSerializer, CategorySerializer
 
 # Signup View
 @api_view(['POST'])
@@ -45,12 +45,12 @@ def logout(request):
     # Invalidate the token on the client side by not using it anymore
     return Response({"message": "Logged out successfully."}, status=status.HTTP_205_RESET_CONTENT)
 
-# User Views
+
+#user views
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])  # Require JWT authentication
 def user_list_create(request):
     if request.method == 'GET':
-        users = User.objects.all()
+        users = User.objects.prefetch_related('visited_places').all()  # Prefetch related places
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
@@ -65,7 +65,7 @@ def user_list_create(request):
 @permission_classes([IsAuthenticated])  # Require JWT authentication
 def user_detail(request, username):
     try:
-        user = User.objects.get(username=username)
+        user = User.objects.prefetch_related('visited_places').get(username=username)  # Prefetch related places
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -93,12 +93,33 @@ def place_list_create(request):
         serializer = PlaceSerializer(places, many=True)
         return Response(serializer.data)
 
+    # elif request.method == 'POST':
+    #     serializer = PlaceSerializer(data=request.data, many=True)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     elif request.method == 'POST':
-        serializer = PlaceSerializer(data=request.data, many=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        places_data = request.data  # Expecting a list of place dictionaries
+        if not isinstance(places_data, list):
+            return Response({"error": "Expecting list of dict's."}, status=status.HTTP_400_BAD_REQUEST)
+        created_places = []  # To store successfully created places
+        for place_data in places_data:
+            category_name = place_data.get('category', None)
+            # Check if category exists or create a new one
+            if category_name:
+                category, created = Category.objects.get_or_create(name=category_name)
+            # Prepare data for Place serializer
+            place_data['category'] = category.id  # Assign the category ID to the place data
+            serializer = PlaceSerializer(data=place_data)  # No many=True here
+            if serializer.is_valid():
+                serializer.save()
+                created_places.append(serializer.data)  # Store the created place data
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(created_places, status=status.HTTP_201_CREATED)
+
 
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])  # Require JWT authentication
@@ -121,4 +142,44 @@ def place_detail(request, pk):
 
     elif request.method == 'DELETE':
         place.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# Category Views
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])  # Require JWT authentication
+def category_list_create(request):
+    if request.method == 'GET':
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])  # Require JWT authentication
+def category_detail(request, categoryname):
+    try:
+        category = Category.objects.get(name=categoryname)
+    except Category.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = CategorySerializer(category)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = CategorySerializer(category, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        category.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -1,13 +1,16 @@
 // src/components/BookingForm.js
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
-import { api, userName } from '../api/ApiService';
+import { BASE_URL, api, userName } from '../api/ApiService';
+import { StoreContext } from '../Store/Store';
 
-function BookingForm({ attractionId }) {
+function BookingForm({ attractionID}) {
   const [bookingData, setBookingData] = useState({
     date: '',
     numberOfPeople: '',
   });
+  const {state, dispatch} = useContext(StoreContext)
+  const {username } = state.user
 
   const handleChange = (event) => {
     setBookingData({ ...bookingData, [event.target.name]: event.target.value });
@@ -15,8 +18,13 @@ function BookingForm({ attractionId }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    api.put(`${BASE_URL}api/users/${userName}/`, )
-    console.log('Booking submitted:', { attractionId, ...bookingData });
+    const updatedUser = {
+      ...state.user, visited_places: [...(state.user.visited_places || []), attractionID]
+    }
+    api.put(`${BASE_URL}api/users/${username}/`, updatedUser)
+    .then((response)=> dispatch({type: 'SET_USER', payload: response.data}))
+    .catch((err)=> console.log(err.message))
+    // console.log('Booking submitted:', { attractionId, ...bookingData });
   };
 
   return (

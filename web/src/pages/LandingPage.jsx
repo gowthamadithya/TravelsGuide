@@ -56,6 +56,8 @@ function LandingPage() {
   const [pops, setPops] = useState([]);
   const [error, setError] = useState(null); // State for error handling
 
+  console.log('app running')
+
   const getUserPreds = async () => {
     try {
       const response = await api.get(`${BASE_URL}api/places/`, {

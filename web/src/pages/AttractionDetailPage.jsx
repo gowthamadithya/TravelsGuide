@@ -68,7 +68,7 @@ function AttractionDetailPage() {
         </Grid2>
         <Grid2 item xs={12} md={4}>
           <Paper elevation={3} sx={{ p: 2 }}>
-            <BookingForm attractionId={id} />
+            <BookingForm attractionID = {attraction.id} />
           </Paper>
         </Grid2>
       </AnimatedGrid>

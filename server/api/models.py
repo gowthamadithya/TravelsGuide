@@ -3,22 +3,33 @@ from django.db import models
 
 class User(AbstractUser):
     age = models.IntegerField(null=True, blank=True)  # Optional field
-    liked_places = models.JSONField(default=list, blank=True)  # List of places user rated above 3 
-    visited_places = models.JSONField(default=list, blank=True)  # List of places user visited 
+    liked_places = models.ManyToManyField('Place', related_name='liked_by', blank=True)  # Many-to-many relationship for liked places
+    visited_places = models.ManyToManyField('Place', related_name='visited_by', blank=True)  # Many-to-many relationship for visited places
 
     def __str__(self) -> str:
         return self.username
 
 
+class Category(models.Model):
+    category_name = models.CharField(max_length=50, unique=True)  # Unique category names
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class Place(models.Model):
     name = models.CharField(max_length=50)
     tagline = models.CharField(max_length=50)
-    description = models.TextField()  # Changed to TextField for longer descriptions
-    image_url = models.URLField(max_length=200)  # Changed to URLField to store the image URL
-    location = models.CharField(max_length=50)
-    average_price = models.IntegerField()
-    average_rating = models.IntegerField()
+    description = models.TextField()  # Long descriptions
+    image_url = models.URLField(max_length=200)  # URL to the image
+    location = models.CharField(max_length=100)  # Increased size for more detailed locations
+    average_price = models.DecimalField(max_digits=10, decimal_places=2)  # For better price representation
+    average_rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)  # To allow half ratings
+    category = models.ForeignKey(Category, related_name='places', on_delete=models.CASCADE)  # Link to Category model
+    opening_hours = models.CharField(max_length=100, blank=True)  # Opening hours description
+    website_url = models.URLField(max_length=200, blank=True)  # Official website URL
+    created_at = models.DateTimeField(auto_now_add=True)  # Timestamp when created
+    updated_at = models.DateTimeField(auto_now=True)  # Timestamp when updated
 
     def __str__(self) -> str:
-        return self.place
-
+        return self.name

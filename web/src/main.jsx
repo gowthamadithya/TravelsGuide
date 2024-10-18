@@ -9,5 +9,6 @@ createRoot(document.getElementById('root')).render(
     <StoreProvider>
       <App />
     </StoreProvider>
+    {/* <StoreProvider passedDownElements={<App />} /> */}
   </StrictMode>,
 )

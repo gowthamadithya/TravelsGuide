@@ -1,9 +1,10 @@
 // src/pages/LoginPage.js
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Container, Typography, Box, Paper, TextField, Button, Link as MuiLink } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import {api, BASE_URL } from '../api/ApiService';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { StoreContext } from '../Store/Store';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -27,7 +28,8 @@ const AnimatedBox = styled(Box)(({ theme, delay }) => ({
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState(''); // State for error message
+  const [errorMessage, setErrorMessage] = useState('');
+  const {state, dispatch} = useContext(StoreContext)
 
   const navigate = useNavigate(); // Hook for navigation
 
@@ -48,7 +50,9 @@ function LoginPage() {
       localStorage.setItem('refresh_token', loginResponse.data.refresh);
       // Optionally redirect to the homepage or dashboard upon successful login
       navigate('/'); // Redirect after successful login
-      localStorage.setItem('user_name', username);
+      await api.get(`${BASE_URL}api/users/${username}/`)
+      .then((response)=> dispatch({type: 'SET_USER', payload: response.data}))
+      .catch((err)=> console.log(err.message))
     } catch (error) {
       if (error.response) {
         // Check for specific errors

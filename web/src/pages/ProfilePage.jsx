@@ -26,13 +26,6 @@ const AnimatedBox = styled(Box)(({ theme, delay }) => ({
   animation: `${fadeIn} 1s ease-out ${delay}s both`,
 }));
 
-
-// Mock visited and liked attractions
-const visitedAttractions = [
-  { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
-  { id: 2, name: 'Colosseum', description: 'Ancient amphitheater in Rome', image: 'https://example.com/colosseum.jpg' },
-];
-
 const likedAttractions = [
   { id: 3, name: 'Great Wall of China', description: 'Ancient fortification in northern China', image: 'https://example.com/greatwall.jpg' },
   { id: 4, name: 'Machu Picchu', description: 'Incan citadel in Peru', image: 'https://example.com/machupicchu.jpg' },
@@ -44,13 +37,15 @@ const likedAttractions = [
 
 function ProfilePage() {
 
-  const [user, setUser] = useState({})
   const {state, dispatch } = useContext(StoreContext)
-  // Mock user data
+  // console.log(state.user)
+  const {id, username, first_name, last_name, email, age, visited_places} = state.user
+  // console.log(username, age)
+
   const getUserData = ()=> {
-    const userResponce = async ()=> await api.get(`${BASE_URL}api/users/${userName}/`)
+    const userResponce = async ()=> await api.get(`${BASE_URL}api/users/${username}/`)
     userResponce()
-    .then((response)=> setUser(response.data))
+    .then((response)=> dispatch({type: 'SET_USER', payload: response.data}))
     .catch((err)=> console.log(err))
   } 
 
@@ -70,17 +65,18 @@ function ProfilePage() {
         <AnimatedBox delay={0.2} sx={{ flex: 1 }}>
           <Paper elevation={3} sx={{ p: 3, textAlign: 'center' }}>
             <Avatar
-              // src={user.avatar || null}
-              alt={user.username}
+              // src={avatar || null} //marked for avatar
+              alt={username}
               sx={{ width: 120, height: 120, margin: 'auto', mb: 2 }}
             />
-            <Typography variant="h5" gutterBottom>{user.username}</Typography>
-            <Typography variant="body1" color="text.secondary">{user.email}</Typography>
+            <Typography variant="h5" gutterBottom>{username}</Typography>
+            <Typography variant="body1" color="text.secondary">{email}</Typography>
+            <Typography variant="body1" color="text.secondary">{age}</Typography>
           </Paper>
         </AnimatedBox>
         </Box>
            <Box sx={{ mb: 4 }}>
-           <AttractionRow title="Visited Attractions" attractions={visitedAttractions} />
+           <AttractionRow title="Visited Attractions" attractions={visited_places} />
            <AttractionRow title="Liked Attractions" attractions={likedAttractions} />
          </Box>
         </StyledContainer>
