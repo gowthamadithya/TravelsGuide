@@ -86,7 +86,7 @@ def user_detail(request, username):
 
 # Place Views
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])   # Require JWT authentication
+# @permission_classes([IsAuthenticated])   # Require JWT authentication
 def place_list_create(request):
     if request.method == 'GET':
         places = Place.objects.all()
@@ -109,7 +109,7 @@ def place_list_create(request):
             category_name = place_data.get('category', None)
             # Check if category exists or create a new one
             if category_name:
-                category, created = Category.objects.get_or_create(name=category_name)
+                category, created = Category.objects.get_or_create(category_name=category_name)
             # Prepare data for Place serializer
             place_data['category'] = category.id  # Assign the category ID to the place data
             serializer = PlaceSerializer(data=place_data)  # No many=True here
@@ -143,6 +143,19 @@ def place_detail(request, pk):
     elif request.method == 'DELETE':
         place.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticated])  # Require JWT authentication
+def place_ratings(request, pk):
+    try:
+        # Fetch the place by name
+        place = Place.objects.get(pk=pk)
+        # Retrieve all ratings for this place
+        ratings = place.ratings.all()
+        serializer = RatingSerializer(ratings, many=True)
+        return Response(serializer.data)
+    except Place.DoesNotExist:
+        return Response({'error': 'Place not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 # Category Views

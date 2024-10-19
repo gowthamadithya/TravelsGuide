@@ -24,7 +24,9 @@ class Place(models.Model):
     image_url = models.URLField(max_length=200)  # URL to the image
     location = models.CharField(max_length=100)  # Increased size for more detailed locations
     average_price = models.DecimalField(max_digits=10, decimal_places=2)  # For better price representation
-    average_rating = models.DecimalField(max_digits=2, decimal_places=1, default=0.0)  # To allow half ratings
+    average_rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)  # Allow half ratings
+    number_of_ratings = models.PositiveIntegerField(default=0)  # Number of ratings received
+    trending_score = models.PositiveIntegerField(default=0)  # Score based on interaction
     category = models.ForeignKey(Category, related_name='places', on_delete=models.CASCADE)  # Link to Category model
     opening_hours = models.CharField(max_length=100, blank=True)  # Opening hours description
     website_url = models.URLField(max_length=200, blank=True)  # Official website URL

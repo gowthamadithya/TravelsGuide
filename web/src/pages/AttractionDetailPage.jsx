@@ -1,10 +1,12 @@
 // src/pages/AttractionDetailPage.js
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Typography, Grid as Grid2, Paper, Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import BookingForm from '../components/BookingForm';
 import { BASE_URL, api } from '../api/ApiService';
+import RatingBox from '../components/RatingBox';
+import { StoreContext } from '../Store/Store';
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   display: 'flex',
@@ -23,8 +25,23 @@ const AnimatedGrid = styled(Grid2)(({ theme }) => ({
 
 
 function AttractionDetailPage() {
-  const { id } = useParams();
+  const { placeId } = useParams();
   const [attraction, setAttraction] = useState({})
+  const [userRating, setUserRating] = useState(null)
+  const {state, dispatch } = useContext(StoreContext)
+  const {id, username} = state.user
+
+  const handleRate = async (value) => {
+    setUserRating(value)
+    const rating = {
+      'user': id,
+      'place': placeId,
+      'rating': value
+    }
+    api.post(`${BASE_URL}crpred/ratings/`, rating)
+    .then((response)=> console.log(response))
+    .catch((err)=> console.log(err.message))
+  }
 
   const getAttractionById = async (id) => {
     try {
@@ -40,8 +57,8 @@ function AttractionDetailPage() {
   };
 
   useEffect(()=> {
-    getAttractionById(id);
-  },[id])
+    getAttractionById(placeId);
+  },[placeId])
 
   console.log(attraction)
 
@@ -62,7 +79,8 @@ function AttractionDetailPage() {
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Price</Typography>
               <Typography variant="body1">${attraction.average_price}</Typography>
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Rating</Typography>
-              <Typography variant="body1">{attraction.average_rating} / 5</Typography>
+              <Typography variant="body1">{attraction.average_rating}</Typography>
+              <RatingBox userRating={userRating} onRate={(value) => handleRate(value)} />
             </Box>
           </Paper>
         </Grid2>

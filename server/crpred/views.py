@@ -11,7 +11,6 @@ recommendation_system = RecommendationSystem()
 
 class RatingListCreate(APIView):
     def get(self, request):
-        # Retrieve all ratings from the database
         ratings = Rating.objects.all()
         serializer = RatingSerializer(ratings, many=True)
         return Response(serializer.data)
@@ -19,12 +18,25 @@ class RatingListCreate(APIView):
     def post(self, request):
         serializer = RatingSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            # Check if there are enough entries for predictions
-            if Rating.objects.count() < 2:  # Adjust as necessary
+            # Save the rating first
+            rating = serializer.save()
+
+            # Update the place's average rating
+            place = rating.place
+            ratings = place.ratings_by_place.all()
+            total_rating = sum(rating.rating for rating in ratings)
+            count = ratings.count()
+            place.average_rating = total_rating / count if count > 0 else 0
+            place.number_of_ratings = count
+            place.save()
+
+            # Optionally check for predictions
+            if Rating.objects.count() < 2:
                 return Response({'error': 'Not enough entries for predictions yet'}, status=status.HTTP_404_NOT_FOUND)
-            recommendation_system.train_model()  # New data added, so retrain the model
+
+            recommendation_system.train_model()  # Retrain the model if needed
             return Response({"message": "Rating added successfully."}, status=status.HTTP_201_CREATED)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RecommendUser(APIView):
