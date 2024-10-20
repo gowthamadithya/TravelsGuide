@@ -11,6 +11,7 @@ function BookingForm({ attractionID}) {
   });
   const {state, dispatch} = useContext(StoreContext)
   const {username } = state.user
+  console.log(attractionID)
 
   const handleChange = (event) => {
     setBookingData({ ...bookingData, [event.target.name]: event.target.value });
@@ -21,11 +22,15 @@ function BookingForm({ attractionID}) {
     const updatedUser = {
       ...state.user, visited_places: [...(state.user.visited_places || []), attractionID]
     }
-    api.put(`${BASE_URL}api/users/${username}/`, updatedUser)
-    .then((response)=> dispatch({type: 'SET_USER', payload: response.data}))
-    .catch((err)=> console.log(err.message))
-    // console.log('Booking submitted:', { attractionId, ...bookingData });
-  };
+    console.log(updatedUser)
+    api.put(`${BASE_URL}api/users/${username}/`, updatedUser, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+      }
+    })
+  .then((response) => dispatch({ type: 'SET_USER', payload: response.data }))
+  .catch((err) => console.log(err.message));
+  }
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>

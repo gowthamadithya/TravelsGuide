@@ -48,6 +48,7 @@ def logout(request):
 
 #user views
 @api_view(['GET', 'POST'])
+# @permission_classes([IsAuthenticated])  # Require JWT authentication
 def user_list_create(request):
     if request.method == 'GET':
         users = User.objects.prefetch_related('visited_places').all()  # Prefetch related places
@@ -62,7 +63,7 @@ def user_list_create(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])  # Require JWT authentication
+# @permission_classes([IsAuthenticated])  # Require JWT authentication
 def user_detail(request, username):
     try:
         user = User.objects.prefetch_related('visited_places').get(username=username)  # Prefetch related places

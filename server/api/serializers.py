@@ -8,9 +8,6 @@ class PlaceSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class UserSerializer(serializers.ModelSerializer):
-    visited_places = PlaceSerializer(many=True, read_only=True)  # Nested serialization for visited places
-    liked_places = PlaceSerializer(many=True, read_only=True)  # Nested serialization for liked places
-
     class Meta:
         model = User
         # fields = '__all__'

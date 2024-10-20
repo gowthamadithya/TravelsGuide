@@ -43,7 +43,11 @@ function ProfilePage() {
   // console.log(username, age)
 
   const getUserData = ()=> {
-    const userResponce = async ()=> await api.get(`${BASE_URL}api/users/${username}/`)
+    const userResponce = async ()=> await api.get(`${BASE_URL}api/users/${username}/`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+      }
+    })
     userResponce()
     .then((response)=> dispatch({type: 'SET_USER', payload: response.data}))
     .catch((err)=> console.log(err))
