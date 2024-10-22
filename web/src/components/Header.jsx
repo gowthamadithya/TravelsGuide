@@ -157,7 +157,7 @@
 
 
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -177,6 +177,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { Link, useNavigate } from 'react-router-dom';
 import { BASE_URL, api } from '../api/ApiService';
+import { StoreContext } from '../Store/Store';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -242,12 +243,14 @@ function Header() {
   const [places, setPlaces] = useState([]);
   const [openSearch, setOpenSearch] = useState(false);
   const navigate = useNavigate();
+  const {state, dispatch } = useContext(StoreContext)
+  const authDetails = state.auth
 
   const fetchPlaces = async () => {
     try {
       const response = await api.get(`${BASE_URL}api/places/`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${authDetails.access}`,
         },
       });
       setPlaces(response.data);
@@ -264,11 +267,12 @@ function Header() {
     try {
       await api.post(`${BASE_URL}api/logout/`, {}, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${authDetails.access}`,
         },
       });
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
+      // localStorage.removeItem('access_token');
+      // localStorage.removeItem('refresh_token');
+      dispatch({ type: 'ADD_AUTH', payload: {} })
       navigate('/login');
     } catch (error) {
       console.log('Logout failed:', error);

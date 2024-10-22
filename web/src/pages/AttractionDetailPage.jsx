@@ -47,10 +47,15 @@ function AttractionDetailPage() {
     try {
       const response = await api.get(`${BASE_URL}api/places/${id}/`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${state.auth.access}`,
         },
       });
       setAttraction(response.data);
+      // Check if the attraction is already in history
+      const isAlreadyInHistory = state.history.some(item => item.id === response.data.id);
+      if (!isAlreadyInHistory) {
+        dispatch({ type: 'ADD_TO_HISTORY', payload: response.data });
+    }
     } catch (err) {
       console.error(err);
     }
@@ -60,7 +65,8 @@ function AttractionDetailPage() {
     getAttractionById(placeId);
   },[placeId])
 
-  console.log(attraction)
+  // console.log(attraction)
+  console.log(state.history)
 
   return (
     <StyledContainer maxWidth={false}>

@@ -1,6 +1,6 @@
 import axios from 'axios';
-
-export const userName = localStorage.getItem('user_name')
+import { useContext } from 'react';
+import { StoreContext } from '../Store/Store';
 
 const BASE_URL = 'http://127.0.0.1:8000/'; // Update with your API base URL
 
@@ -10,7 +10,11 @@ const api = axios.create({
 
 // Function to refresh the access token
 const refreshAccessToken = async () => {
-  const refreshToken = localStorage.getItem('refresh_token');
+  const { state, dispatch } = useContext(StoreContext);
+  const authDetails = state.auth;
+
+  // Extract the refresh token from the auth state
+  const refreshToken = authDetails?.refresh;
 
   if (!refreshToken) {
     console.error('No refresh token found');
@@ -21,8 +25,9 @@ const refreshAccessToken = async () => {
     const response = await axios.post(`${BASE_URL}api/token/refresh/`, {
       refresh: refreshToken,
     });
-    // Store the new access token
-    localStorage.setItem('access_token', response.data.access);
+
+    // Update the state with the new access token
+    dispatch({ type: 'ADD_AUTH', payload: response.data });
     console.log('New Access Token:', response.data.access);
     return response.data.access; // Return the new access token
   } catch (error) {

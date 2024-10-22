@@ -46,8 +46,9 @@ function LoginPage() {
       console.log('Access Token:', loginResponse.data.access);
       console.log('Refresh Token:', loginResponse.data.refresh);
       // Store tokens in localStorage
-      localStorage.setItem('access_token', loginResponse.data.access);
-      localStorage.setItem('refresh_token', loginResponse.data.refresh);
+      // localStorage.setItem('access_token', loginResponse.data.access);
+      // localStorage.setItem('refresh_token', loginResponse.data.refresh);
+      dispatch({type: 'ADD_AUTH', payload: loginResponse.data})
       // Optionally redirect to the homepage or dashboard upon successful login
       navigate('/'); // Redirect after successful login
       await api.get(`${BASE_URL}api/users/${username}/`)

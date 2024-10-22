@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
 // import './SearchPage.css';
 
-function SearchPage({ attractions, setSearchResults }) {
+function SearchPage() {
+
+  const [allPlaces, setAllPlaces] = useState([])
+  const [filRes, setFilres] = useState([])
+
+
   const [filters, setFilters] = useState({
     location: '',
     price: '',
@@ -28,7 +33,7 @@ function SearchPage({ attractions, setSearchResults }) {
         (!filters.type || attraction.type === filters.type)
       );
     });
-    setSearchResults(results);
+    setFilres(results);
   };
 
   return (

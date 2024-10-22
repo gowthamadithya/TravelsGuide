@@ -1,7 +1,7 @@
 // src/components/BookingForm.js
 import React, { useContext, useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
-import { BASE_URL, api, userName } from '../api/ApiService';
+import { BASE_URL, api } from '../api/ApiService';
 import { StoreContext } from '../Store/Store';
 
 function BookingForm({ attractionID}) {

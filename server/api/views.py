@@ -51,7 +51,7 @@ def logout(request):
 # @permission_classes([IsAuthenticated])  # Require JWT authentication
 def user_list_create(request):
     if request.method == 'GET':
-        users = User.objects.prefetch_related('visited_places').all()  # Prefetch related places
+        users = User.objects.prefetch_related('visited_places', 'liked_places').all()  # Prefetch related places
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
@@ -66,18 +66,33 @@ def user_list_create(request):
 # @permission_classes([IsAuthenticated])  # Require JWT authentication
 def user_detail(request, username):
     try:
-        user = User.objects.prefetch_related('visited_places').get(username=username)  # Prefetch related places
+        user = User.objects.prefetch_related('visited_places', 'liked_places').get(username=username)  # Prefetch related places
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = UserSerializer(user)
-        return Response(serializer.data)
+        # Get full place details for visited and liked places
+        visited_places = user.visited_places.all()  # This fetches full Place objects
+        liked_places = user.liked_places.all()      # This fetches full Place objects
+
+        user_data = UserSerializer(user).data
+        user_data['visited_places'] = PlaceSerializer(visited_places, many=True).data
+        user_data['liked_places'] = PlaceSerializer(liked_places, many=True).data
+        return Response(user_data)
 
     elif request.method == 'PUT':
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
+            # Handle visited places if provided
+            visited_places = request.data.get('visited_places', None)
+            if visited_places is not None:
+                user.visited_places.add(*visited_places)
+
+            # Handle liked places if provided
+            liked_places = request.data.get('liked_places', None)
+            if liked_places is not None:
+                user.liked_places.add(*liked_places)
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

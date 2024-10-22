@@ -4,7 +4,7 @@ import { Container, Typography, Box, Paper, Avatar } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import AttractionCard from '../components/AttractionCard';
 import AttractionRow from '../components/AttractionRow';
-import { BASE_URL, api, readResource, userName } from '../api/ApiService';
+import { BASE_URL, api } from '../api/ApiService';
 import { StoreContext } from '../Store/Store';
 
 const fadeIn = keyframes`
@@ -45,7 +45,7 @@ function ProfilePage() {
   const getUserData = ()=> {
     const userResponce = async ()=> await api.get(`${BASE_URL}api/users/${username}/`, {
       headers: {
-        Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        Authorization: `Bearer ${state.auth.access}`,
       }
     })
     userResponce()

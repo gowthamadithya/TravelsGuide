@@ -1,10 +1,11 @@
 // src/pages/LandingPage.js
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Container, Typography, Button, Box } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { styled, keyframes } from '@mui/material/styles';
 import AttractionRow from '../components/AttractionRow';
 import { BASE_URL, api } from '../api/ApiService';
+import { StoreContext } from '../Store/Store';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -45,27 +46,35 @@ const AnimatedButton = styled(Button)(({ theme }) => ({
 }));
 
 
-const recentlyViewed = [
-  { id: 3, name: 'Great Wall of China', description: 'Ancient fortification in northern China', image: 'https://example.com/greatwall.jpg' },
-  { id: 4, name: 'Machu Picchu', description: 'Incan citadel in Peru', image: 'https://example.com/machupicchu.jpg' },
-  // Add more attractions...
-];
-
 function LandingPage() {
   const [preds, setPreds] = useState([]);
   const [pops, setPops] = useState([]);
   const [error, setError] = useState(null); // State for error handling
+  const { state, dispatch } = useContext(StoreContext)
+  const { user, history, auth } = state
 
-  console.log('app running')
 
   const getUserPreds = async () => {
     try {
-      const response = await api.get(`${BASE_URL}api/places/`, {
+      const response = await api.get(`${BASE_URL}crpred/create/?user_id=${user.id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+          Authorization: `Bearer ${auth.access}`,
         },
       });
       setPreds(response.data);
+    } catch (err) {
+      console.error(err);
+      setError('Failed to fetch user predictions. unauthorised'); // Set an error message
+    }
+  };
+
+  const getPops = async () => {
+    try {
+      const response = await api.get(`${BASE_URL}api/places/`, {
+        headers: {
+          Authorization: `Bearer ${auth.access}`,
+        },
+      });
       setPops(response.data);
     } catch (err) {
       console.error(err);
@@ -74,8 +83,11 @@ function LandingPage() {
   };
 
   useEffect(() => {
-    getUserPreds();
-  }, []);
+    if (user.id) {
+      getUserPreds();
+    }
+    getPops()
+  }, [user.id]);
 
   return (
     <StyledContainer maxWidth={false}>
@@ -105,7 +117,10 @@ function LandingPage() {
         )}
         <AttractionRow title="Recommended for You" attractions={preds} />
         <AttractionRow title="Popular Attractions" attractions={pops} />
-        <AttractionRow title="continue on  your last search" attractions={recentlyViewed} />
+        <AttractionRow title="continue on  your last search" attractions={history} />
+        <Typography variant="h2" gutterBottom sx={{ my: 4 }}>
+          <Link to={'/addplace'}> Places missed in the list Add it </Link>
+        </Typography>
       </Box>
     </StyledContainer>
   );

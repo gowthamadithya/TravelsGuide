@@ -145,7 +145,7 @@ class RecommendationSystem:
         predictions_np = predictions.detach().numpy()  
     
         predictions_df = pd.DataFrame({
-            'place_idx': range(self.num_places),
+            # 'place_idx': range(self.num_places),
             'place': self.unique_places,  
             'predicted_rating': predictions_np
         })
