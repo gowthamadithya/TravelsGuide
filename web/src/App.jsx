@@ -15,6 +15,7 @@ import ProtectedRoutes from './Routes/AuthRouter';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import AddPlacePage from './pages/AddPlacePage';
+import DashboardPage from './pages/DashBoardPage';
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
             <Routes>
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
 
               {/* Use ProtectedRoutes for routes that require authentication */}
               <Route element={<ProtectedRoutes />}>
