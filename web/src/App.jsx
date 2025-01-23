@@ -36,14 +36,12 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
 
-              {/* Use ProtectedRoutes for routes that require authentication */}
               <Route element={<ProtectedRoutes />}>
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/attraction/:placeId" element={<AttractionDetailPage />} />
                 <Route path="/addplace" element={<AddPlacePage />} />
-                {/* Add more protected routes here */}
               </Route>
 
               <Route path="*" element={

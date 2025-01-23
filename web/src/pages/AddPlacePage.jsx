@@ -43,7 +43,7 @@ function AddPlacePage() {
     e.preventDefault();
     try {
       const response = await api.post(`${BASE_URL}api/places/`, placeDetails);
-      dispatch({ type: 'ADD_PLACE', payload: response.data }); // Assuming you have an ADD_PLACE action
+      dispatch({ type: 'ADD_PLACE', payload: response.data });
       setSuccess(true);
       setPlaceDetails({
         name: '',

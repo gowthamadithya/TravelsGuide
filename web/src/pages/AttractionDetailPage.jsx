@@ -51,7 +51,6 @@ function AttractionDetailPage() {
         },
       });
       setAttraction(response.data);
-      // Check if the attraction is already in history
       const isAlreadyInHistory = state.history.some(item => item.id === response.data.id);
       if (!isAlreadyInHistory) {
         dispatch({ type: 'ADD_TO_HISTORY', payload: response.data });
@@ -65,8 +64,6 @@ function AttractionDetailPage() {
     getAttractionById(placeId);
   },[placeId])
 
-  // console.log(attraction)
-  console.log(state.history)
 
   return (
     <StyledContainer maxWidth={false}>

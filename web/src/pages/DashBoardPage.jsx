@@ -41,7 +41,6 @@ const InsightsCard = styled(Card)(({ theme }) => ({
   boxShadow: theme.shadows[3],
 }));
 
-// Mocked Data
 const mockUserDetails = {
   id: 1,
   name: 'John Doe',

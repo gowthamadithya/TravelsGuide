@@ -20,7 +20,6 @@ const AnimatedGrid = styled(Grid2)(({ theme }) => ({
   },
 }));
 
-// Mock data - replace with actual API calls in a real application
 const allAttractions = [
   { id: 1, name: 'Eiffel Tower', description: 'Iconic iron tower in Paris', image: 'https://example.com/eiffel.jpg' },
   { id: 2, name: 'Colosseum', description: 'Ancient amphitheater in Rome', image: 'https://example.com/colosseum.jpg' },
@@ -32,7 +31,6 @@ const allAttractions = [
   { id: 4, name: 'Machu Picchu', description: 'Incan citadel in Peru', image: 'https://example.com/machupicchu.jpg' },
   { id: 4, name: 'Machu Picchu', description: 'Incan citadel in Peru', image: 'https://example.com/machupicchu.jpg' },
   { id: 4, name: 'Machu Picchu', description: 'Incan citadel in Peru', image: 'https://example.com/machupicchu.jpg' },
-  // Add more attractions...
 ];
 
 function SearchPage() {
@@ -43,7 +41,7 @@ function SearchPage() {
     maxDistance: 100,
   });
 
-  // In a real application, you would use the filters to query your backend or filter the data
+  // use the filters to query your backend or filter the data
   const filteredAttractions = allAttractions;
 
   return (

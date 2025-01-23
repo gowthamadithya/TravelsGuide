@@ -2,10 +2,8 @@ import { createContext, useReducer } from "react";
 
 const StoreContext = createContext({});
 
-// Define an initial state
 const initialState = { user: {}, places: [], ratings: [], history: [], auth: {} };
 
-// Create a reducer function
 function reducer(state, action) {
   switch (action.type) {
     case 'SET_USER':

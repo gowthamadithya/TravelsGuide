@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Container, Typography, Box, Paper, TextField, Button, Link as MuiLink } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import { BASE_URL, api } from '../api/ApiService';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -31,9 +31,9 @@ function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [age, setAge] = useState(0);
-  const [errorMessage, setErrorMessage] = useState(''); // State for error message
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -49,12 +49,11 @@ function SignupPage() {
     try {
       const signupResponse = await api.post(`${BASE_URL}api/signup/`, signupPayload);
       console.log(signupResponse.data);
-      // Optionally, redirect to login or another page on successful signup
       navigate('/login'); // Redirect to login after successful signup
     } catch (error) {
       if (error.response) {
         // Check if the account already exists
-        if (error.response.status === 409) { // Assuming 409 Conflict for existing accounts
+        if (error.response.status === 409) { // 409 Conflict for existing accounts
           setErrorMessage('An account with this email already exists.');
         } else {
           console.log(error.response.data);

@@ -38,9 +38,7 @@ const likedAttractions = [
 function ProfilePage() {
 
   const {state, dispatch } = useContext(StoreContext)
-  // console.log(state.user)
   const {id, username, first_name, last_name, email, age, visited_places} = state.user
-  // console.log(username, age)
 
   const getUserData = ()=> {
     const userResponce = async ()=> await api.get(`${BASE_URL}api/users/${username}/`, {

@@ -64,7 +64,7 @@ function LandingPage() {
       setPreds(response.data);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch user predictions. unauthorised'); // Set an error message
+      setError('Failed to fetch user predictions. unauthorised');
     }
   };
 
@@ -78,7 +78,7 @@ function LandingPage() {
       setPops(response.data);
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch user predictions. unauthorised'); // Set an error message
+      setError('Failed to fetch user predictions. unauthorised');
     }
   };
 

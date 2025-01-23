@@ -3,7 +3,7 @@ import React, { useContext, useState } from 'react';
 import { Container, Typography, Box, Paper, TextField, Button, Link as MuiLink } from '@mui/material';
 import { styled, keyframes } from '@mui/material/styles';
 import {api, BASE_URL } from '../api/ApiService';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
+import { useNavigate } from 'react-router-dom';
 import { StoreContext } from '../Store/Store';
 
 const fadeIn = keyframes`
@@ -31,7 +31,7 @@ function LoginPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const {state, dispatch} = useContext(StoreContext)
 
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -49,7 +49,6 @@ function LoginPage() {
       // localStorage.setItem('access_token', loginResponse.data.access);
       // localStorage.setItem('refresh_token', loginResponse.data.refresh);
       dispatch({type: 'ADD_AUTH', payload: loginResponse.data})
-      // Optionally redirect to the homepage or dashboard upon successful login
       navigate('/'); // Redirect after successful login
       await api.get(`${BASE_URL}api/users/${username}/`)
       .then((response)=> dispatch({type: 'SET_USER', payload: response.data}))
